@@ -1,0 +1,73 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "2ead49c2f5a294eb3f8c2fdb9766d6ac",
+    "entities": [
+      {
+        "tableName": "tracks",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`fileKey` TEXT NOT NULL, `uri` TEXT NOT NULL, `displayName` TEXT NOT NULL, `durationMs` INTEGER NOT NULL, `gaps` TEXT NOT NULL, `silenceEnabled` INTEGER NOT NULL, `fadeMs` INTEGER NOT NULL, `lastOpenedAt` INTEGER NOT NULL, PRIMARY KEY(`fileKey`))",
+        "fields": [
+          {
+            "fieldPath": "fileKey",
+            "columnName": "fileKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uri",
+            "columnName": "uri",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayName",
+            "columnName": "displayName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "durationMs",
+            "columnName": "durationMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gaps",
+            "columnName": "gaps",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "silenceEnabled",
+            "columnName": "silenceEnabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fadeMs",
+            "columnName": "fadeMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastOpenedAt",
+            "columnName": "lastOpenedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "fileKey"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2ead49c2f5a294eb3f8c2fdb9766d6ac')"
+    ]
+  }
+}
