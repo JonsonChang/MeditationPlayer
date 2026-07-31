@@ -23,14 +23,15 @@ import androidx.compose.ui.unit.dp
 import com.wji.meditationplayer.BuildConfig
 import com.wji.meditationplayer.ui.formatDuration
 
-private const val MIN_MINUTES = 5f
-private const val MAX_MINUTES = 50f
+private const val MIN_MINUTES = 1f
+private const val MAX_MINUTES = 20f
+private const val DEFAULT_MINUTES = 5f
 
 /**
  * 設定要在 [atOriginalMs] 插入多長的空白。
  *
- * 空白長度依需求為 5–50 分鐘、1 分鐘一階。debug build 另外提供一個極短選項，
- * 否則每次驗證淡變都得等 5 分鐘（見 BuildConfig.MIN_GAP_MS）。
+ * 空白長度依需求為 1–20 分鐘、1 分鐘一階，預設 5 分鐘。debug build 另外提供一個極短選項，
+ * 否則每次驗證淡變都得等 1 分鐘（見 BuildConfig.MIN_GAP_MS）。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,7 +41,7 @@ fun GapEditorSheet(
     onConfirm: (durationMs: Long) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState()
-    var minutes by remember { mutableFloatStateOf(MIN_MINUTES) }
+    var minutes by remember { mutableFloatStateOf(DEFAULT_MINUTES) }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(

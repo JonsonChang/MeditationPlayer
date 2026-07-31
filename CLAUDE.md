@@ -154,7 +154,8 @@ WorkManager 自己的 `SystemForegroundService` 沒宣告 `foregroundServiceType
 ### 其他不能拿掉的東西
 - `PlaybackService` 的 `setWakeMode(C.WAKE_MODE_LOCAL)` — 50 分鐘靜默期間會被 doze 中斷
 - `MainActivity` 的 `Modifier.safeDrawingPadding()` — Android 15+ 強制 edge-to-edge，否則內容被狀態列蓋住
-- debug build 的 `BuildConfig.MIN_GAP_MS = 5000`（release 是 300000）—— 否則每次驗證淡變都要等 5 分鐘
+- debug build 的 `BuildConfig.MIN_GAP_MS = 5000`（release 是 300000）—— 否則每次驗證淡變都要等 1 分鐘
+  （插入空白可選 1–20 分鐘、預設 5 分鐘，見 `GapEditorSheet`）
 
 ---
 
