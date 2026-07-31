@@ -78,6 +78,14 @@ Javadoc：*"Concatenates multiple MediaSources, combining everything in one sing
 - **下方細長條（`TotalTimelineBar`）= 插入後真實比例**，讓使用者對總長有正確直覺
 - 播到靜默段時顯示「靜默中 · 剩餘 mm:ss」，否則使用者會以為卡住
 
+### 點插入點列表會跳轉，靠的是 `toEffective` 的「嚴格小於」
+`GapRow` 的時間文字可點，呼叫 `seekToOriginal(gap.atMs)`。位置剛好等於插入點時
+`toEffective` 會落在該靜默段的**起點**（見 2.2 與 `EffectiveTimeline.toEffective` 的註解），
+所以波形指示線會精準對齊那條標記線，同時顯示「靜默中 · 剩餘 …」。**這是刻意的**，
+不要為了「讓使用者聽到進入留白前的音訊」改成 `atMs - 幾秒`，指示線會偏離標記線。
+
+只讓文字可點、不是整列 —— 左右兩側是 `Checkbox` 與刪除鍵，整列可點會搶掉它們的觸控區。
+
 ---
 
 ## 6. 效能：已量測的事實（**不要重新猜**）
@@ -182,6 +190,12 @@ export/
 
 ui/  home/（最近清單）  player/（波形、插入點編輯、匯出）
 ```
+
+### 播放控制列為什麼排成兩列
+六顆鍵（從頭開始 / 播放暫停 / ∓15s / ∓5s）塞不進一列：360dp 螢幕扣掉 padding 只剩約 328dp，
+`OutlinedButton` 預設 contentPadding 就佔 48dp。所以拆兩列、每顆 `weight(1f)`。
+**不要為了「播放鍵居中」併回一列** —— 那得把 contentPadding 壓到 8dp，
+大字級設定下會截字。
 
 ### 為什麼用自訂 session 指令而不是 MediaItem
 插入靜音必須用 `ExoPlayer.setMediaSource()`，而 `MediaController` 只認得 `MediaItem`，

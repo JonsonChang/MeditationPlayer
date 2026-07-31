@@ -173,6 +173,12 @@ class PlayerViewModel(
         if (controller.isPlaying) controller.pause() else controller.play()
     }
 
+    fun restart() {
+        val controller = connection.controller ?: return
+        controller.seekTo(0L)
+        controller.play()
+    }
+
     fun seekToOriginal(originalMs: Long) {
         val timeline = _state.value.timeline ?: return
         connection.controller?.seekTo(timeline.toEffective(originalMs))

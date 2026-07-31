@@ -2,6 +2,7 @@ package com.wji.meditationplayer.ui.player
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -123,14 +124,44 @@ fun PlayerScreen(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            OutlinedButton(onClick = { viewModel.skipBy(-15_000L) }) { Text("−15s") }
-            Button(onClick = viewModel::togglePlayPause) {
+            OutlinedButton(
+                onClick = viewModel::restart,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text("↺ 從頭開始")
+            }
+            Button(
+                onClick = viewModel::togglePlayPause,
+                modifier = Modifier.weight(1f),
+            ) {
                 Text(if (state.isPlaying) "暫停" else "播放")
             }
-            OutlinedButton(onClick = { viewModel.skipBy(15_000L) }) { Text("+15s") }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            OutlinedButton(
+                onClick = { viewModel.skipBy(-15_000L) },
+                modifier = Modifier.weight(1f),
+            ) { Text("−15s") }
+            OutlinedButton(
+                onClick = { viewModel.skipBy(-5_000L) },
+                modifier = Modifier.weight(1f),
+            ) { Text("−5s") }
+            OutlinedButton(
+                onClick = { viewModel.skipBy(5_000L) },
+                modifier = Modifier.weight(1f),
+            ) { Text("+5s") }
+            OutlinedButton(
+                onClick = { viewModel.skipBy(15_000L) },
+                modifier = Modifier.weight(1f),
+            ) { Text("+15s") }
         }
 
         HorizontalDivider()
@@ -197,6 +228,7 @@ fun PlayerScreen(
             GapRow(
                 gap = gap,
                 onToggle = { enabled -> viewModel.setGapEnabled(gap, enabled) },
+                onSeek = { viewModel.seekToOriginal(gap.atMs) },
                 onRemove = { viewModel.removeGap(gap) },
             )
         }
@@ -218,6 +250,7 @@ fun PlayerScreen(
 private fun GapRow(
     gap: Gap,
     onToggle: (Boolean) -> Unit,
+    onSeek: () -> Unit,
     onRemove: () -> Unit,
 ) {
     Row(
@@ -228,7 +261,10 @@ private fun GapRow(
         Checkbox(checked = gap.enabled, onCheckedChange = onToggle)
         Text(
             text = "${formatDuration(gap.atMs)} · ${formatGapLength(gap.durationMs)}",
-            modifier = Modifier.weight(1f),
+            // 只讓文字可點，避免跟左右兩側的 Checkbox / 刪除鍵搶點擊區。
+            modifier = Modifier
+                .weight(1f)
+                .clickable(onClick = onSeek),
         )
         IconButton(onClick = onRemove) { Text("✕") }
     }
