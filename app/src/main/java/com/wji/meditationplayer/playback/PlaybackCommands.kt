@@ -13,6 +13,16 @@ object PlaybackCommands {
 
     const val KEY_URI = "uri"
     const val KEY_TITLE = "title"
+
+    /** 服務端用來組通知卡片的 PendingIntent，讓點擊能回到這個音檔的播放畫面。 */
+    const val KEY_FILE_KEY = "fileKey"
+
+    /**
+     * 這次載入的設定指紋。服務端會回吐到 session extras，
+     * UI 重新連上時才能判斷「服務是不是已經在播這一份設定」而不必重載。
+     */
+    const val KEY_SIGNATURE = "signature"
+
     const val KEY_DURATION_MS = "durationMs"
     const val KEY_GAPS = "gaps"
     const val KEY_FADE_MS = "fadeMs"

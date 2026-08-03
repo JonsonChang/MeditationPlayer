@@ -145,9 +145,18 @@ class PlayerViewModel(
         force: Boolean = false,
     ) {
         val signature = track.signature()
+        val controller = connection.controller ?: return
+
+        // 這個 VM 的第一次同步就發現服務已經在播這一份設定（從播放通知回到畫面、或轉螢幕
+        // 重建 VM）：只接手記帳，不要重送 LOAD —— 重送會把播放位置歸零。
+        if (loadedSignature == null && connection.loadedSignature() == signature) {
+            loadedSignature = signature
+            loadedTimeline = timeline
+            return
+        }
+
         if (!force && signature == loadedSignature) return
 
-        val controller = connection.controller ?: return
         val originalPosition = loadedTimeline
             ?.toOriginal(controller.currentPosition.coerceAtLeast(0L))
             ?: 0L
@@ -158,6 +167,8 @@ class PlayerViewModel(
         connection.load(
             uri = track.uri,
             title = track.displayName,
+            fileKey = fileKey,
+            signature = signature,
             durationMs = track.durationMs,
             encodedGaps = GapCodec.encode(track.activeGaps()),
             fadeMs = track.fadeMs,

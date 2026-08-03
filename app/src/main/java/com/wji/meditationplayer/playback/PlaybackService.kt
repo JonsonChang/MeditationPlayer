@@ -51,7 +51,7 @@ class PlaybackService : MediaSessionService() {
 
         session = MediaSession.Builder(this, player)
             .setCallback(LoadCommandCallback())
-            .setSessionActivity(openAppIntent())
+            .setSessionActivity(openPlayerIntent(null))
             .build()
     }
 
@@ -65,12 +65,27 @@ class PlaybackService : MediaSessionService() {
         super.onDestroy()
     }
 
-    private fun openAppIntent(): PendingIntent = PendingIntent.getActivity(
-        this,
-        0,
-        Intent(this, MainActivity::class.java),
-        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-    )
+    /**
+     * 通知卡片的點擊目標。帶上 [fileKey] 才能讓 [MainActivity] 導回該音檔的播放畫面
+     * （fileKey 為 null 時退回原本行為：開 app 落在最近清單）。
+     *
+     * requestCode 固定 0 配 `FLAG_UPDATE_CURRENT` 是刻意的：`Intent.filterEquals` 不看 extras，
+     * 所以換音檔時正好會**更新**既有 PendingIntent 的 extras。若改成每個 fileKey 一組
+     * requestCode，會留下一堆各自指向舊音檔的 PendingIntent。
+     */
+    private fun openPlayerIntent(fileKey: String?): PendingIntent {
+        val intent = Intent(this, MainActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        if (!fileKey.isNullOrEmpty()) {
+            intent.putExtra(MainActivity.EXTRA_FILE_KEY, fileKey)
+        }
+        return PendingIntent.getActivity(
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+    }
 
     private inner class LoadCommandCallback : MediaSession.Callback {
 
@@ -137,6 +152,17 @@ class PlaybackService : MediaSessionService() {
         player.prepare()
         player.seekTo(args.getLong(PlaybackCommands.KEY_START_POSITION_MS))
         player.playWhenReady = args.getBoolean(PlaybackCommands.KEY_PLAY_WHEN_READY, false)
+
+        // 通知卡片要指回這個音檔；指紋則讓重新連上的 UI 知道不必重載（重載會把位置歸零）。
+        session?.setSessionActivity(openPlayerIntent(args.getString(PlaybackCommands.KEY_FILE_KEY)))
+        session?.setSessionExtras(
+            Bundle().apply {
+                putString(
+                    PlaybackCommands.KEY_SIGNATURE,
+                    args.getString(PlaybackCommands.KEY_SIGNATURE),
+                )
+            },
+        )
         return true
     }
 }

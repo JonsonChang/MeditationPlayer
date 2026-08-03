@@ -36,9 +36,15 @@ class PlayerConnection(private val context: Context) {
         return result
     }
 
+    /** 服務端目前載入的設定指紋；null 表示尚未載入或尚未連線。 */
+    fun loadedSignature(): String? =
+        controller?.sessionExtras?.getString(PlaybackCommands.KEY_SIGNATURE)
+
     fun load(
         uri: String,
         title: String,
+        fileKey: String,
+        signature: String,
         durationMs: Long,
         encodedGaps: String,
         fadeMs: Long,
@@ -49,6 +55,8 @@ class PlayerConnection(private val context: Context) {
         val args = Bundle().apply {
             putString(PlaybackCommands.KEY_URI, uri)
             putString(PlaybackCommands.KEY_TITLE, title)
+            putString(PlaybackCommands.KEY_FILE_KEY, fileKey)
+            putString(PlaybackCommands.KEY_SIGNATURE, signature)
             putLong(PlaybackCommands.KEY_DURATION_MS, durationMs)
             putString(PlaybackCommands.KEY_GAPS, encodedGaps)
             putLong(PlaybackCommands.KEY_FADE_MS, fadeMs)

@@ -18,9 +18,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MeditationPlayer">
 
+        <!--
+            launchMode 必須是 singleTask：點播放通知卡片時要重用既有實例並收到 onNewIntent
+            才能拿到 fileKey。維持預設的 standard 會另外疊一個 MainActivity（回到最近清單），
+            而 standard 就算比對上既有 task 也只是把它帶到前景、不會呼叫 onNewIntent。
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.MeditationPlayer">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

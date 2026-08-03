@@ -205,6 +205,34 @@ ui/  home/（最近清單）  player/（波形、插入點編輯、匯出）
 
 靜音總開關不在協定裡：關閉時 UI 直接送空的 gaps 字串，服務端不必知道這個概念。
 
+### 點系統播放通知卡片要回到「正在播的那個音檔」的播放畫面
+三個環節缺一個就會壞，而症狀都長得像「回到選檔畫面」或「音檔從頭重播」：
+
+1. **session activity 必須每次 LOAD 重建**（`PlaybackService.openPlayerIntent`）。
+   `MediaSession.Builder` 那次只是 fileKey 為 null 的後備。Intent 要帶 `MainActivity.EXTRA_FILE_KEY`，
+   否則 `AppNavHost` 只能從 `startDestination = home` 開始。
+   ⚠️ requestCode 固定 0 配 `FLAG_UPDATE_CURRENT` 是刻意的：`Intent.filterEquals` **不看 extras**，
+   所以換音檔時剛好會更新既有 PendingIntent。改成每個 fileKey 一組 requestCode 會留下一堆指向舊音檔的。
+
+2. **`MainActivity` 的 `launchMode="singleTask"` 是必需，不是風格選擇。**
+   維持預設 `standard` 時，純元件 Intent 比對不上既有 task 的 base intent，會**再疊一個
+   MainActivity**；而就算把 Intent 做成 launcher 形式能比對上，系統也只是把 task 帶到前景、
+   **不呼叫 `onNewIntent`**，extras 直接丟掉。
+   導航完要用 `intent.removeExtra` **消耗掉** extra（`MainActivity.consumeFileKey`）：轉螢幕重建時
+   `onCreate` 會再讀到同一個 intent，不消耗會把已按返回鍵回到最近清單的使用者彈回播放畫面。
+   ⚠️ 不要改成判斷 `savedInstanceState == null` —— activity 被系統回收（前景服務還在播）後再點卡片時，
+   系統送來的是**新的** intent 但 savedInstanceState 不是 null，那種情況仍然必須導航過去。
+   client 端 `removeExtra` 不會動到系統側 PendingIntent 的 extras，所以下一次點擊照樣帶得到 fileKey。
+
+3. **重新連上時要「接手」而不是重載**（`PlayerViewModel.syncPlaybackIfNeeded` 的第一個分支）。
+   `PlayerViewModel` 綁在 `NavBackStackEntry` 上，通知進來／轉螢幕／從 Home 再次進入都是**新的 VM**，
+   `loadedTimeline` 是 null → 重送 LOAD 會讓 `startPositionMs` 變 0，**聽得到從頭重播**。
+   判斷依據是 `signature`（uri|時長|fadeMs|gaps）而不只是 fileKey：只比 fileKey 會在「編輯了插入點
+   但當下 controller 還沒連上」的時序下誤判成已同步，讓服務停在舊設定而 UI 顯示新設定。
+   指紋的回傳管道是 **session extras**（`KEY_SIGNATURE`）—— Media3 傳給 controller 的 MediaItem 會被
+   剝掉 `localConfiguration`，所以 UI 端**無法**從 controller 反查 URI。
+   `AcceptedResultBuilder(session)` 會帶入 session 當下的 extras，後連上的 controller 才讀得到。
+
 ### DI
 手動 `AppContainer`（約 30 行），沒有 Hilt。依賴只有 DB / TrackRepository /
 WaveformRepository 三個，Hilt 的樣板成本大於收益。
